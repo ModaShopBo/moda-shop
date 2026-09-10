@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Producto | ModaShop 🇧🇴</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- =========================
+     BARRA SUPERIOR
+========================= -->
+
+<div class="top-bar">
+    <div class="container top-bar-content">
+
+        <span>
+            <i class="fa-solid fa-truck"></i>
+            Envíos a toda Bolivia
+        </span>
+
+        <span>
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+            Pago al recibir
+        </span>
+
+        <span>
+            <i class="fa-solid fa-shield-halved"></i>
+            Compra segura
+        </span>
+
+    </div>
+</div>
+
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<header class="main-header">
+
+    <div class="container header-content">
+
+        <a href="index.html" class="logo">
+
+            <span class="logo-main">Moda</span>
+            <span class="logo-shop">Shop</span>
+
+            <span class="flag-brush" aria-label="Bolivia">
+                <span class="flag-red"></span>
+                <span class="flag-yellow"></span>
+                <span class="flag-green"></span>
+            </span>
+
+        </a>
+
+
+        <nav class="desktop-nav">
+
+            <a href="index.html">
+                Inicio
+            </a>
+
+            <a href="index.html#categorias">
+                Categorías
+            </a>
+
+        </nav>
+
+
+        <div class="header-actions">
+
+            <button
+                type="button"
+                class="cart-button"
+                id="cartButton"
+                aria-label="Carrito de compras">
+
+                <i class="fa-solid fa-bag-shopping"></i>
+
+                <span class="cart-count">0</span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="mobile-menu-button"
+                id="mobileMenuButton"
+                aria-label="Abrir menú">
+
+                <i class="fa-solid fa-bars"></i>
+
+            </button>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- =========================
+     MENÚ MÓVIL
+========================= -->
+
+<div class="mobile-menu" id="mobileMenu">
+
+    <div class="mobile-menu-header">
+
+        <span class="mobile-menu-title">
+            ModaShop 🇧🇴
+        </span>
+
+        <button
+            type="button"
+            id="mobileMenuClose"
+            aria-label="Cerrar menú">
+
+            <i class="fa-solid fa-xmark"></i>
+
+        </button>
+
+    </div>
+
+
+    <nav class="mobile-nav">
+
+        <a href="index.html">
+            <i class="fa-solid fa-house"></i>
+            Inicio
+        </a>
+
+        <a href="index.html#categorias">
+            <i class="fa-solid fa-layer-group"></i>
+            Categorías
+        </a>
+
+    </nav>
+
+</div>
+
+
+<!-- =========================
+     PRODUCTO
+========================= -->
+
+<main>
+
+    <section class="product-detail-section">
+
+        <div class="container">
+
+
+            <!-- MIGAS DE PAN -->
+
+            <div class="product-breadcrumb">
+
+                <a href="index.html">
+                    Inicio
+                </a>
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+                <a href="mujer.html">
+                    Mujer
+                </a>
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+                <a href="billeteras.html">
+                    Billeteras
+                </a>
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+                <span>
+                    Billetera Guess Rosa
+                </span>
+
+            </div>
+
+
+            <!-- CONTENIDO DEL PRODUCTO -->
+
+            <div class="product-detail">
+
+
+                <!-- =========================
+                     GALERÍA
+                ========================== -->
+
+                <div class="product-gallery">
+
+
+                    <!-- FOTO PRINCIPAL -->
+
+                    <div class="product-main-image">
+
+    <button
+        type="button"
+        class="gallery-arrow gallery-arrow-prev"
+        id="galleryPrev"
+        aria-label="Foto anterior">
+
+        <i class="fa-solid fa-chevron-left"></i>
+
+    </button>
+
+
+    <img
+        id="mainProductImage"
+        src="billetera-guess-rosa-1.jpg"
+        alt="Billetera Guess Rosa">
+
+
+    <button
+        type="button"
+        class="gallery-arrow gallery-arrow-next"
+        id="galleryNext"
+        aria-label="Foto siguiente">
+
+        <i class="fa-solid fa-chevron-right"></i>
+
+    </button>
+
+</div>
+
+
+                    <!-- MINIATURAS -->
+
+                    <div
+                        class="product-thumbnails"
+                        id="productThumbnails">
+
+                        <button
+                            type="button"
+                            class="product-thumbnail active">
+
+                            <img
+                                src="billetera-guess-rosa-1.jpg"
+                                alt="Vista 1">
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="product-thumbnail">
+
+                            <img
+                                src="billetera-guess-rosa-2.jpg"
+                                alt="Vista 2">
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="product-thumbnail">
+
+                            <img
+                                src="billetera-guess-rosa-3.jpg"
+                                alt="Vista 3">
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="product-thumbnail">
+
+                            <img
+                                src="billetera-guess-rosa-4.jpg"
+                                alt="Vista 4">
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="product-thumbnail">
+
+                            <img
+                                src="billetera-guess-rosa-5.jpg"
+                                alt="Vista 5">
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================
+                     INFORMACIÓN
+                ========================== -->
+
+                <div class="product-detail-info">
+
+
+                    <span class="product-detail-category">
+                        BILLETERAS PARA MUJER
+                    </span>
+
+
+                    <h1>
+                        Billetera Guess Rosa
+                    </h1>
+
+
+                    <div class="product-detail-price">
+                        187,50 Bs.
+                    </div>
+
+
+                    <div class="product-divider"></div>
+
+
+                    <div class="product-description">
+
+                        <p>
+                            Billetera Guess Rosa, ideal para complementar
+                            tu estilo y llevar tus objetos personales
+                            de manera práctica y elegante.
+                        </p>
+
+                    </div>
+
+
+                    <!-- AVISO DE RÉPLICA -->
+
+                    <div class="product-notice">
+
+                        <i class="fa-solid fa-circle-info"></i>
+
+                        <div>
+
+                            <strong>
+                                Producto réplica
+                            </strong>
+
+                            <p>
+                                Este producto es una réplica.
+                                No se comercializa como producto original.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CARACTERÍSTICAS -->
+
+                    <div class="product-features">
+
+                        <h2>
+                            Características
+                        </h2>
+
+                        <ul>
+
+                            <li>
+                                <i class="fa-solid fa-check"></i>
+                                Diseño femenino y moderno
+                            </li>
+
+                            <li>
+                                <i class="fa-solid fa-check"></i>
+                                Tamaño práctico para uso diario
+                            </li>
+
+                            <li>
+                                <i class="fa-solid fa-check"></i>
+                                Interior funcional
+                            </li>
+
+                            <li>
+                                <i class="fa-solid fa-check"></i>
+                                Disponible en color rosa
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+
+                    <!-- COMPRA -->
+
+                    <div class="product-purchase">
+
+
+                        <div class="quantity-selector">
+
+                            <button
+                                type="button"
+                                id="quantityMinus"
+                                aria-label="Disminuir cantidad">
+
+                                <i class="fa-solid fa-minus"></i>
+
+                            </button>
+
+                            <span id="productQuantity">
+                                1
+                            </span>
+
+                            <button
+                                type="button"
+                                id="quantityPlus"
+                                aria-label="Aumentar cantidad">
+
+                                <i class="fa-solid fa-plus"></i>
+
+                            </button>
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="add-to-cart-button"
+                            id="addToCartButton">
+
+                            <i class="fa-solid fa-bag-shopping"></i>
+
+                            Agregar al carrito
+
+                        </button>
+
+                    </div>
+
+
+                    <!-- WHATSAPP -->
+
+                    <a
+                        href="#"
+                        class="product-whatsapp-button"
+                        id="productWhatsapp"
+                        target="_blank"
+                        rel="noopener noreferrer">
+
+                        <i class="fa-brands fa-whatsapp"></i>
+
+                        Consultar por WhatsApp
+
+                    </a>
+
+
+                    <!-- INFORMACIÓN DE ENVÍO -->
+
+                    <div class="product-shipping">
+
+                        <div>
+
+                            <i class="fa-solid fa-truck"></i>
+
+                            <span>
+                                <strong>
+                                    Envíos a toda Bolivia
+                                </strong>
+                                <small>
+                                    Consulta el costo de envío a tu ciudad.
+                                </small>
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+
+                            <span>
+                                <strong>
+                                    Pago al recibir
+                                </strong>
+                                <small>
+                                    Consulta disponibilidad en tu zona.
+                                </small>
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <i class="fa-solid fa-shield-halved"></i>
+
+                            <span>
+                                <strong>
+                                    Compra segura
+                                </strong>
+                                <small>
+                                    Estamos para ayudarte con tu compra.
+                                </small>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =========================
+     FOOTER
+========================= -->
+
+<footer class="footer">
+
+    <div class="container footer-grid">
+
+
+        <div class="footer-brand">
+
+            <a href="index.html" class="footer-logo">
+                ModaShop 🇧🇴
+            </a>
+
+            <p>
+                Accesorios y productos de moda
+                para toda Bolivia.
+            </p>
+
+        </div>
+
+
+        <div class="footer-column">
+
+            <h3>
+                Navegación
+            </h3>
+
+            <a href="index.html">
+                Inicio
+            </a>
+
+            <a href="index.html#categorias">
+                Categorías
+            </a>
+
+        </div>
+
+
+        <div class="footer-column">
+
+            <h3>
+                Ayuda
+            </h3>
+
+            <a href="#">
+                Términos y condiciones
+            </a>
+
+            <a href="#">
+                Política de privacidad
+            </a>
+
+        </div>
+
+
+        <div class="footer-column">
+
+            <h3>
+                ¿Necesitas ayuda?
+            </h3>
+
+            <a
+                href="#"
+                id="footerWhatsapp"
+                target="_blank"
+                rel="noopener noreferrer">
+
+                <i class="fa-brands fa-whatsapp"></i>
+                Escríbenos por WhatsApp
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+        <div class="container">
+
+            <p>
+                © 2026 ModaShop 🇧🇴.
+                Todos los derechos reservados.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
+
+
+<!-- =========================
+     WHATSAPP FLOTANTE
+========================= -->
+
+<a
+    href="#"
+    class="whatsapp-button"
+    id="whatsappButton"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Escríbenos por WhatsApp">
+
+    <span class="whatsapp-tooltip">
+        ¿Tienes alguna duda? Escríbenos por WhatsApp
+    </span>
+
+    <i class="fa-brands fa-whatsapp"></i>
+
+</a>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>

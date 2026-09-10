@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ModaShop 🇧🇴 | Accesorios para Bolivia</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- =====================================================
+         BARRA SUPERIOR
+    ====================================================== -->
+
+    <div class="top-bar">
+        <div class="container top-bar-content">
+
+            <span>
+                <i class="fa-solid fa-truck"></i>
+                Envíos a toda Bolivia
+            </span>
+
+            <span>
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+                Pago al recibir
+            </span>
+
+            <span>
+                <i class="fa-solid fa-shield-halved"></i>
+                Compra segura
+            </span>
+
+        </div>
+    </div>
+
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="main-header">
+
+        <div class="container header-content">
+
+            <!-- LOGO -->
+            <a href="#inicio" class="logo">
+
+                <span class="logo-main">Moda</span><span class="logo-shop">Shop</span>
+
+                <span class="flag-brush" aria-label="Bolivia">
+                    <span class="flag-red"></span>
+                    <span class="flag-yellow"></span>
+                    <span class="flag-green"></span>
+                </span>
+
+            </a>
+
+
+            <!-- NAVEGACIÓN DESKTOP -->
+            <nav class="desktop-nav">
+
+                <a href="#inicio">Inicio</a>
+
+                <a href="#categorias">Categorías</a>
+
+            </nav>
+
+
+            <!-- ACCIONES -->
+            <div class="header-actions">
+
+                <button
+                    type="button"
+                    class="cart-button"
+                    id="cartButton"
+                    aria-label="Carrito de compras">
+
+                    <i class="fa-solid fa-bag-shopping"></i>
+
+                    <span class="cart-count">0</span>
+
+                </button>
+
+
+                <!-- BOTÓN MENÚ MÓVIL -->
+                <button
+                    type="button"
+                    class="mobile-menu-button"
+                    id="mobileMenuButton"
+                    aria-label="Abrir menú">
+
+                    <i class="fa-solid fa-bars"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         MENÚ MÓVIL
+    ====================================================== -->
+
+    <div class="mobile-menu" id="mobileMenu">
+
+        <div class="mobile-menu-header">
+
+            <span class="mobile-menu-title">
+                ModaShop 🇧🇴
+            </span>
+
+            <button
+                type="button"
+                id="mobileMenuClose"
+                aria-label="Cerrar menú">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <nav class="mobile-nav">
+
+            <a href="#inicio">
+                <i class="fa-solid fa-house"></i>
+                Inicio
+            </a>
+
+            <a href="#categorias">
+                <i class="fa-solid fa-layer-group"></i>
+                Categorías
+            </a>
+
+        </nav>
+
+    </div>
+
+
+    <!-- =====================================================
+         CONTENIDO PRINCIPAL
+    ====================================================== -->
+
+    <main id="inicio">
+
+
+        <!-- =================================================
+             BANNER PRINCIPAL
+        ================================================== -->
+
+        <section class="hero">
+
+            <img
+                src="banner-moda-shop.png"
+                alt="ModaShop Bolivia - Accesorios de moda"
+                class="hero-banner">
+
+        </section>
+
+
+        <!-- =================================================
+             CATEGORÍAS
+        ================================================== -->
+
+        <section class="categories-section" id="categorias">
+
+            <div class="container">
+
+                <div class="section-heading">
+
+                    <span class="section-eyebrow">
+                        DESCUBRE NUESTRO CATÁLOGO
+                    </span>
+
+                    <h2>
+                        Comprar por categorías
+                    </h2>
+
+                    <p>
+                        Encuentra accesorios pensados para cada estilo y edad.
+                    </p>
+
+                </div>
+
+
+                <div class="categories-grid">
+
+
+                    <!-- ==============================
+                         VARÓN
+                    =============================== -->
+
+                    <a href="varon.html" class="category-card">
+
+                        <div class="category-image men-image"></div>
+
+                        <div class="category-content">
+
+                            <span class="category-number">
+                                01
+                            </span>
+
+                            <h3>
+                                Accesorios para Varón
+                            </h3>
+
+                            <span class="category-link">
+
+                                Ver productos
+
+                                <i class="fa-solid fa-arrow-right"></i>
+
+                            </span>
+
+                        </div>
+
+                    </a>
+
+
+                    <!-- ==============================
+                         MUJER
+                    =============================== -->
+
+                    <a href="mujer.html" class="category-card">
+
+                        <div class="category-image women-image"></div>
+
+                        <div class="category-content">
+
+                            <span class="category-number">
+                                02
+                            </span>
+
+                            <h3>
+                                Accesorios para Mujer
+                            </h3>
+
+                            <span class="category-link">
+
+                                Ver productos
+
+                                <i class="fa-solid fa-arrow-right"></i>
+
+                            </span>
+
+                        </div>
+
+                    </a>
+
+
+                    <!-- ==============================
+                         NIÑOS
+                    =============================== -->
+
+                    <a href="ninos.html" class="category-card">
+
+                        <div class="category-image kids-image"></div>
+
+                        <div class="category-content">
+
+                            <span class="category-number">
+                                03
+                            </span>
+
+                            <h3>
+                                Accesorios para Niños
+                            </h3>
+
+                            <span class="category-link">
+
+                                Ver productos
+
+                                <i class="fa-solid fa-arrow-right"></i>
+
+                            </span>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             POR QUÉ COMPRAR
+        ================================================== -->
+
+        <section class="why-section">
+
+            <div class="container">
+
+                <div class="section-heading">
+
+                    <span class="section-eyebrow">
+                        MODASHOP 🇧🇴
+                    </span>
+
+                    <h2>
+                        ¿Por qué comprar en ModaShop?
+                    </h2>
+
+                </div>
+
+
+                <div class="benefits-grid">
+
+
+                    <!-- BENEFICIO 1 -->
+
+                    <div class="benefit-card">
+
+                        <div class="benefit-icon">
+
+                            <i class="fa-solid fa-truck"></i>
+
+                        </div>
+
+                        <h3>
+                            Envíos a toda Bolivia
+                        </h3>
+
+                        <p>
+                            Llevamos tus productos hasta diferentes
+                            ciudades y departamentos del país.
+                        </p>
+
+                    </div>
+
+
+                    <!-- BENEFICIO 2 -->
+
+                    <div class="benefit-card">
+
+                        <div class="benefit-icon">
+
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+
+                        </div>
+
+                        <h3>
+                            Pago al recibir
+                        </h3>
+
+                        <p>
+                            Compra de manera sencilla y paga
+                            cuando recibas tu pedido.
+                        </p>
+
+                    </div>
+
+
+                    <!-- BENEFICIO 3 -->
+
+                    <div class="benefit-card">
+
+                        <div class="benefit-icon">
+
+                            <i class="fa-solid fa-shield-halved"></i>
+
+                        </div>
+
+                        <h3>
+                            Compra segura
+                        </h3>
+
+                        <p>
+                            Queremos que tengas una experiencia
+                            de compra clara, cómoda y confiable.
+                        </p>
+
+                    </div>
+
+
+                    <!-- BENEFICIO 4 -->
+
+                    <div class="benefit-card">
+
+                        <div class="benefit-icon">
+
+                            <i class="fa-solid fa-heart"></i>
+
+                        </div>
+
+                        <h3>
+                            Moda para Bolivia
+                        </h3>
+
+                        <p>
+                            Seleccionamos accesorios pensando
+                            en los gustos y necesidades de nuestro país.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="footer">
+
+        <div class="container footer-grid">
+
+
+            <!-- MARCA -->
+
+            <div class="footer-brand">
+
+                <a href="#inicio" class="footer-logo">
+                    ModaShop 🇧🇴
+                </a>
+
+                <p>
+                    Accesorios y productos de moda
+                    para toda Bolivia.
+                </p>
+
+            </div>
+
+
+            <!-- NAVEGACIÓN -->
+
+            <div class="footer-column">
+
+                <h3>
+                    Navegación
+                </h3>
+
+                <a href="#inicio">
+                    Inicio
+                </a>
+
+                <a href="#categorias">
+                    Categorías
+                </a>
+
+            </div>
+
+
+            <!-- AYUDA -->
+
+            <div class="footer-column">
+
+                <h3>
+                    Ayuda
+                </h3>
+
+                <a href="#">
+                    Términos y condiciones
+                </a>
+
+                <a href="#">
+                    Política de privacidad
+                </a>
+
+            </div>
+
+
+            <!-- WHATSAPP -->
+
+            <div class="footer-column">
+
+                <h3>
+                    ¿Necesitas ayuda?
+                </h3>
+
+                <a
+                    href="#"
+                    id="footerWhatsapp"
+                    target="_blank"
+                    rel="noopener noreferrer">
+
+                    <i class="fa-brands fa-whatsapp"></i>
+
+                    Escríbenos por WhatsApp
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            <div class="container">
+
+                <p>
+                    © 2026 ModaShop 🇧🇴. Todos los derechos reservados.
+                </p>
+
+            </div>
+
+        </div>
+
+    </footer>
+
+
+    <!-- =====================================================
+         WHATSAPP FLOTANTE
+    ====================================================== -->
+
+    <a
+        href="#"
+        class="whatsapp-button"
+        id="whatsappButton"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Escríbenos por WhatsApp">
+
+        <span class="whatsapp-tooltip">
+            ¿Tienes alguna duda? Escríbenos por WhatsApp
+        </span>
+
+        <i class="fa-brands fa-whatsapp"></i>
+
+    </a>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script src="script.js"></script>
+
+</body>
+</html>
