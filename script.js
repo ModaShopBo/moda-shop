@@ -1304,24 +1304,21 @@ document
 ========================================= */
 
 function obtenerProductoActual() {
-
-    const parametros =
-        new URLSearchParams(
-            window.location.search
-        );
-
-
-    const id =
-        parametros.get("id");
-
-
-    if (!id) {
-        return null;
-    }
-
-
+    const parametros = new URLSearchParams(window.location.search);
+    const id = parametros.get("id");
+    if (!id) return null;
     return PRODUCTOS[id] || null;
+}
 
+async function obtenerProductoDesdeAPI(id) {
+    try {
+        const response = await fetch(`/api/products/${encodeURIComponent(id)}`);
+        if (!response.ok) throw new Error("Producto no encontrado");
+        const data = await response.json();
+        return data.product || null;
+    } catch {
+        return PRODUCTOS[id] || null;
+    }
 }
 
 
@@ -1510,10 +1507,11 @@ function configurarGaleria(producto) {
    CARGAR INFORMACIÓN DEL PRODUCTO
 ========================================= */
 
-function cargarProducto() {
+async function cargarProducto() {
 
-    const producto =
-        obtenerProductoActual();
+    const parametros = new URLSearchParams(window.location.search);
+    const id = parametros.get("id");
+    const producto = id ? await obtenerProductoDesdeAPI(id) : null;
 
 
     if (!producto) {
@@ -1799,6 +1797,52 @@ function configurarBotonCarrito(
 }
 
 
+
+
+/* =========================================
+   CATÁLOGO DINÁMICO DESDE MODASHOP ADMIN
+========================================= */
+
+async function obtenerProductosCatalogo(categoria = "") {
+    try {
+        const url = categoria
+            ? `/api/products?category=${encodeURIComponent(categoria)}`
+            : "/api/products";
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("API unavailable");
+        const data = await response.json();
+        return Array.isArray(data.products) ? data.products : [];
+    } catch {
+        return Object.values(PRODUCTOS);
+    }
+}
+
+function renderizarTarjetaProducto(producto) {
+    return `
+        <a href="producto.html?id=${encodeURIComponent(producto.id)}" class="product-card">
+            <div class="product-image">
+                <img src="${producto.imagenPrincipal}" alt="${producto.nombre}">
+            </div>
+            <div class="product-info">
+                <span class="product-category">${producto.categoria}</span>
+                <h2>${producto.nombre}</h2>
+                <div class="product-bottom">
+                    <span class="product-price">${formatearPrecio(producto.precio)}</span>
+                    <span class="product-view">Ver producto <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+        </a>`;
+}
+
+async function cargarCatalogoDinamico() {
+    const grid = document.getElementById("catalogProductGrid");
+    if (!grid) return;
+    const productos = await obtenerProductosCatalogo("billeteras");
+    grid.innerHTML = productos.length
+        ? productos.map(renderizarTarjetaProducto).join("")
+        : `<div class="catalog-loading">Todavía no hay productos publicados en esta categoría.</div>`;
+}
+
 /* =========================================
    INICIAR
 ========================================= */
@@ -1808,3 +1852,4 @@ configurarWhatsApp();
 actualizarContadorCarrito();
 
 cargarProducto();
+cargarCatalogoDinamico();

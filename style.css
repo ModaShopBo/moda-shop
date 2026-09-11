@@ -3868,3 +3868,13 @@ body.checkout-open {
         height: 50px;
     }
 }
+
+.catalog-loading {
+    grid-column: 1 / -1;
+    padding: 50px 20px;
+    text-align: center;
+    color: var(--gray);
+    font-size: 13px;
+    border: 1px dashed #ddd4c7;
+    border-radius: 12px;
+}

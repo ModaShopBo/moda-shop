@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "moda-shop",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-10",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "."
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "modashop-db",
+      "database_id": "78e10f12-5647-4d54-9823-d72e3a96bc6c"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "PRODUCT_IMAGES",
+      "bucket_name": "modashop-images"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
