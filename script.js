@@ -8,7 +8,7 @@
    CONFIGURACIÓN WHATSAPP
 ========================================= */
 
-const WHATSAPP_NUMBER = "59170000000";
+const WHATSAPP_NUMBER = "59176609084";
 
 const WHATSAPP_MESSAGE =
     "Hola, Moda Shop 🇧🇴. Tengo una consulta sobre sus productos.";
@@ -461,17 +461,6 @@ function crearCheckout() {
         </div>
 
         <div class="checkout-content">
-            <div class="checkout-benefits">
-                <div>
-                    <i class="fa-solid fa-truck-fast"></i>
-                    <span><strong>Envío GRATIS</strong><small>A toda Bolivia</small></span>
-                </div>
-                <div>
-                    <i class="fa-solid fa-hand-holding-dollar"></i>
-                    <span><strong>Pago al recibir</strong><small>Pagas cuando recibes</small></span>
-                </div>
-            </div>
-
             <form id="checkoutForm" novalidate>
                 <div class="checkout-section-title">
                     <span>01</span>
@@ -495,15 +484,25 @@ function crearCheckout() {
                     <textarea id="checkoutReference" name="referencia" rows="2" placeholder="Ej. Casa con puerta negra, frente a..." autocomplete="off"></textarea>
                 </div>
 
+                <div class="checkout-shipping-method">
+                    <div class="checkout-shipping-radio" aria-hidden="true">
+                        <span></span>
+                    </div>
+                    <div class="checkout-shipping-copy">
+                        <strong>Envío gratis</strong>
+                    </div>
+                    <span class="checkout-shipping-price">Gratis</span>
+                </div>
+
                 <div class="checkout-location-box">
                     <div class="checkout-location-icon">
                         <i class="fa-solid fa-location-dot"></i>
                     </div>
                     <div class="checkout-location-copy">
-                        <strong>Ubicación exacta en Google Maps</strong>
-                        <p>Recomendamos compartirla para que podamos encontrar tu dirección con mayor facilidad.</p>
+                        <strong>Ubicación exacta en Google Maps <span class="checkout-required">*</span></strong>
+                        <p>Es necesaria para coordinar correctamente la entrega.</p>
                         <button type="button" class="checkout-location-button" id="checkoutLocationButton">
-                            <i class="fa-solid fa-crosshairs"></i>
+                            <i class="fa-solid fa-location-crosshairs"></i>
                             Compartir mi ubicación
                         </button>
                         <span class="checkout-location-status" id="checkoutLocationStatus"></span>
@@ -523,6 +522,10 @@ function crearCheckout() {
                     <div>
                         <span>Subtotal</span>
                         <strong id="checkoutSubtotal">0,00 Bs.</strong>
+                    </div>
+                    <div id="checkoutSavingsRow" class="checkout-savings-row" hidden>
+                        <span>Ahorro</span>
+                        <strong id="checkoutSavings">-0,00 Bs.</strong>
                     </div>
                     <div>
                         <span>Envío</span>
@@ -627,12 +630,16 @@ function renderizarCheckout() {
     }
 
     let total = 0;
+    let originalTotal = 0;
     order.innerHTML = "";
 
     carrito.forEach(producto => {
 
-        const subtotal = producto.precio * producto.cantidad;
+        const subtotal = Number(producto.precio || 0) * producto.cantidad;
+        const originalUnit = Number(producto.precioOriginal || producto.precio || 0);
+        const originalSubtotal = originalUnit * producto.cantidad;
         total += subtotal;
+        originalTotal += originalSubtotal;
 
         const item = document.createElement("div");
         item.className = "checkout-order-item";
@@ -650,6 +657,14 @@ function renderizarCheckout() {
 
         order.appendChild(item);
     });
+
+    const savings = Math.max(0, Math.round((originalTotal - total) * 100) / 100);
+    const savingsRow = document.getElementById("checkoutSavingsRow");
+    const savingsValue = document.getElementById("checkoutSavings");
+    if (savingsRow && savingsValue) {
+        savingsRow.hidden = savings <= 0;
+        savingsValue.textContent = `-${formatearPrecio(savings)}`;
+    }
 
     if (subtotalElement) {
         subtotalElement.textContent = formatearPrecio(total);
@@ -672,7 +687,8 @@ function obtenerUbicacionCheckout() {
     }
 
     if (!navigator.geolocation) {
-        status.textContent = "Tu navegador no permite obtener la ubicación. Puedes continuar sin ella.";
+        status.textContent = "Tu navegador no permite obtener la ubicación. Activa la ubicación para continuar.";
+        status.classList.add("checkout-location-invalid");
         return;
     }
 
@@ -708,9 +724,9 @@ function obtenerUbicacionCheckout() {
             `;
 
             if (error.code === 1) {
-                status.textContent = "No se concedió permiso para acceder a la ubicación. Puedes continuar sin ella.";
+                status.textContent = "No se concedió permiso. Debes permitir la ubicación para continuar.";
             } else {
-                status.textContent = "No pudimos obtener tu ubicación. Intenta nuevamente o continúa sin ella.";
+                status.textContent = "No pudimos obtener tu ubicación. Intenta nuevamente para continuar.";
             }
         },
         {
@@ -728,13 +744,16 @@ function validarCheckout() {
     const address = document.getElementById("checkoutAddress");
     const nameError = document.getElementById("checkoutNameError");
     const addressError = document.getElementById("checkoutAddressError");
+    const mapsLink = document.getElementById("checkoutMapsLink");
+    const locationStatus = document.getElementById("checkoutLocationStatus");
 
-    if (!name || !address) {
+    if (!name || !address || !mapsLink) {
         return false;
     }
 
     if (nameError) nameError.textContent = "";
     if (addressError) addressError.textContent = "";
+    if (locationStatus && mapsLink.value.trim()) locationStatus.classList.remove("checkout-location-invalid");
 
     let valido = true;
 
@@ -752,6 +771,14 @@ function validarCheckout() {
         valido = false;
     } else {
         address.classList.remove("invalid");
+    }
+
+    if (!mapsLink.value.trim()) {
+        if (locationStatus) {
+            locationStatus.textContent = "Comparte tu ubicación exacta para continuar.";
+            locationStatus.classList.add("checkout-location-invalid");
+        }
+        valido = false;
     }
 
     return valido;
@@ -778,46 +805,73 @@ function confirmarPedido(event) {
     const referencia = document.getElementById("checkoutReference").value.trim();
     const mapsLink = document.getElementById("checkoutMapsLink").value.trim();
     const total = obtenerTotalCarrito();
+    const originalTotal = carrito.reduce((sum, producto) => sum + (Number(producto.precioOriginal || producto.precio || 0) * producto.cantidad), 0);
+    const ahorro = Math.max(0, Math.round((originalTotal - total) * 100) / 100);
 
     let mensaje = `*NUEVO PEDIDO — MODASHOP 🇧🇴*\n\n`;
     mensaje += `*DATOS DE ENTREGA*\n`;
     mensaje += `👤 Nombre: ${nombre}\n`;
     mensaje += `📍 Dirección: ${direccion}\n`;
     mensaje += `📝 Referencia: ${referencia || "No especificada"}\n`;
-
-    if (mapsLink) {
-        mensaje += `🗺️ Ubicación en Google Maps: ${mapsLink}\n`;
-    }
+    mensaje += `🗺️ Ubicación en Google Maps: ${mapsLink}\n`;
 
     mensaje += `\n*PEDIDO*\n`;
-
     carrito.forEach(producto => {
-        const subtotal = producto.precio * producto.cantidad;
+        const subtotal = Number(producto.precio || 0) * producto.cantidad;
         mensaje += `• ${producto.nombre} × ${producto.cantidad} — ${formatearPrecio(subtotal)}\n`;
     });
 
-    mensaje += `\n💰 Subtotal: ${formatearPrecio(total)}\n`;
+    mensaje += `\n💰 Total productos: ${formatearPrecio(total)}\n`;
+    if (ahorro > 0) mensaje += `🏷️ Ahorro del cliente: ${formatearPrecio(ahorro)}\n`;
     mensaje += `🚚 Envío: *GRATIS*\n`;
     mensaje += `💵 *Total a pagar: ${formatearPrecio(total)}*\n`;
     mensaje += `💳 Forma de pago: *Pago al recibir*`;
 
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
-
-    window.open(url, "_blank", "noopener,noreferrer");
-
-    cerrarCheckout();
-    cerrarCarrito();
-
-    localStorage.removeItem(CART_STORAGE_KEY);
-    actualizarContadorCarrito();
-
-    const orderButton = document.getElementById("cartCheckout");
-    if (orderButton) {
-        orderButton.disabled = true;
-    }
-
-    renderizarCarrito();
+    mostrarConfirmacionPedido(() => {
+        const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+        cerrarConfirmacionPedido();
+        cerrarCheckout();
+        cerrarCarrito();
+        localStorage.removeItem(CART_STORAGE_KEY);
+        actualizarContadorCarrito();
+        renderizarCarrito();
+    });
 }
+
+function mostrarConfirmacionPedido(onConfirm) {
+    cerrarCheckout();
+    const existing = document.getElementById("orderSuccessOverlay");
+    existing?.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = "orderSuccessOverlay";
+    overlay.className = "order-success-overlay active";
+    overlay.innerHTML = `
+        <section class="order-success-modal" role="dialog" aria-modal="true" aria-labelledby="orderSuccessTitle">
+            <button type="button" class="order-success-close" id="orderSuccessClose" aria-label="Cerrar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="order-success-check" aria-hidden="true"><i class="fa-solid fa-check"></i></div>
+            <h2 id="orderSuccessTitle">¡Pedido preparado!</h2>
+            <p>Ya tenemos los datos de tu pedido. Confirma por WhatsApp para coordinar tu entrega.</p>
+            <button type="button" class="order-success-whatsapp" id="orderSuccessWhatsapp">
+                <i class="fa-brands fa-whatsapp"></i>
+                <span>CONFIRMAR POR WHATSAPP</span>
+            </button>
+        </section>`;
+
+    document.body.appendChild(overlay);
+    const close = () => cerrarConfirmacionPedido();
+    overlay.querySelector("#orderSuccessClose")?.addEventListener("click", close);
+    overlay.addEventListener("click", event => { if (event.target === overlay) close(); });
+    overlay.querySelector("#orderSuccessWhatsapp")?.addEventListener("click", onConfirm);
+}
+
+function cerrarConfirmacionPedido() {
+    document.getElementById("orderSuccessOverlay")?.remove();
+}
+
 
 
 /* =========================================
@@ -1230,6 +1284,9 @@ function agregarAlCarrito(
     if (existente) {
 
         existente.cantidad += cantidad;
+        existente.precio = precioFinalProducto(producto);
+        existente.precioOriginal = Number(producto.precio || existente.precioOriginal || existente.precio || 0);
+        existente.descuento = Math.max(0, Math.min(100, Number(producto.descuento || 0)));
 
     } else {
 
@@ -1240,6 +1297,10 @@ function agregarAlCarrito(
             nombre: producto.nombre,
 
             precio: precioFinalProducto(producto),
+
+            precioOriginal: Number(producto.precio || 0),
+
+            descuento: Math.max(0, Math.min(100, Number(producto.descuento || 0))),
 
             imagen: producto.imagenPrincipal,
 
@@ -1584,6 +1645,23 @@ async function cargarProducto() {
 
     }
 
+    const notice = document.querySelector(".product-notice");
+    const esReplica = String(producto.tipo || "").trim().toLowerCase() === "réplica" || String(producto.tipo || "").trim().toLowerCase() === "replica";
+    if (notice) {
+        notice.hidden = !esReplica;
+    }
+
+    if (precio) {
+        const descuento = Math.max(0, Math.min(100, Number(producto.descuento || 0)));
+        const ahorro = Math.round((Number(producto.precio || 0) - precioFinalProducto(producto)) * 100) / 100;
+        if (descuento > 0 && ahorro > 0) {
+            const savings = document.createElement("div");
+            savings.className = "product-savings";
+            savings.innerHTML = `<i class="fa-solid fa-tag"></i> Ahorras <strong>${formatearPrecio(ahorro)}</strong>`;
+            precio.appendChild(savings);
+        }
+    }
+
 
     const lista =
         document.querySelector(
@@ -1780,24 +1858,7 @@ function configurarBotonCarrito(
                 cantidad
             );
 
-
-            boton.innerHTML = `
-                <i class="fa-solid fa-check"></i>
-                Agregado al carrito
-            `;
-
-
-            setTimeout(
-                () => {
-
-                    boton.innerHTML = `
-                        <i class="fa-solid fa-bag-shopping"></i>
-                        Agregar al carrito
-                    `;
-
-                },
-                1500
-            );
+            abrirCheckout();
 
         }
     );
