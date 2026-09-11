@@ -26,7 +26,9 @@ const INITIAL_PRODUCT = {
     "Disponible en color rosa"
   ],
   stock: 0,
-  publicado: true
+  publicado: true,
+  descuento: 0,
+  orden: 0
 };
 
 function json(data, status = 200, extraHeaders = {}) {
@@ -55,6 +57,9 @@ function normalizeProduct(row) {
     caracteristicas: JSON.parse(row.caracteristicas_json || "[]"),
     stock: Number(row.stock || 0),
     publicado: Boolean(row.publicado),
+    descuento: Math.max(0, Math.min(100, Number(row.descuento || 0))),
+    orden: Number(row.orden || 0),
+    precioFinal: Math.round((Number(row.precio) * (1 - Math.max(0, Math.min(100, Number(row.descuento || 0))) / 100)) * 100) / 100,
     creadoEn: row.creado_en,
     actualizadoEn: row.actualizado_en
   };
@@ -75,15 +80,20 @@ async function ensureSchema(env) {
       caracteristicas_json TEXT NOT NULL DEFAULT '[]',
       stock INTEGER NOT NULL DEFAULT 0,
       publicado INTEGER NOT NULL DEFAULT 1,
+      descuento INTEGER NOT NULL DEFAULT 0,
+      orden INTEGER NOT NULL DEFAULT 0,
       creado_en TEXT NOT NULL,
       actualizado_en TEXT NOT NULL
     )
   `).run();
 
+  try { await env.DB.prepare("ALTER TABLE products ADD COLUMN descuento INTEGER NOT NULL DEFAULT 0").run(); } catch (_) {}
+  try { await env.DB.prepare("ALTER TABLE products ADD COLUMN orden INTEGER NOT NULL DEFAULT 0").run(); } catch (_) {}
+
   const existing = await env.DB.prepare("SELECT id FROM products WHERE id = ?").bind(INITIAL_PRODUCT.id).first();
   if (!existing) {
     const now = new Date().toISOString();
-    await env.DB.prepare(`INSERT INTO products (id,nombre,categoria,categoria_slug,tipo,precio,imagen_principal,galeria_json,descripcion,caracteristicas_json,stock,publicado,creado_en,actualizado_en) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+    await env.DB.prepare(`INSERT INTO products (id,nombre,categoria,categoria_slug,tipo,precio,imagen_principal,galeria_json,descripcion,caracteristicas_json,stock,publicado,descuento,orden,creado_en,actualizado_en) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
       .bind(
         INITIAL_PRODUCT.id,
         INITIAL_PRODUCT.nombre,
@@ -96,6 +106,8 @@ async function ensureSchema(env) {
         INITIAL_PRODUCT.descripcion,
         JSON.stringify(INITIAL_PRODUCT.caracteristicas),
         INITIAL_PRODUCT.stock,
+        1,
+        INITIAL_PRODUCT.descuento,
         1,
         now,
         now
@@ -187,14 +199,14 @@ function safeFilename(name) {
     .slice(0, 90);
 }
 
-async function putImages(env, productId, files) {
+async function putImages(env, productId, files, startIndex = 0) {
   const urls = [];
   for (let index = 0; index < files.length; index++) {
     const file = files[index];
     if (!(file instanceof File) || !file.type.startsWith("image/")) continue;
     if (file.size > 8 * 1024 * 1024) throw new Error("Cada imagen debe pesar como máximo 8 MB.");
     const extension = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const key = `products/${productId}/${String(index + 1).padStart(2, "0")}-${crypto.randomUUID()}.${extension}`;
+    const key = `products/${productId}/${String(startIndex + index + 1).padStart(2, "0")}-${crypto.randomUUID()}.${extension}`;
     await env.PRODUCT_IMAGES.put(key, file.stream(), {
       httpMetadata: { contentType: file.type, cacheControl: "public, max-age=31536000, immutable" }
     });
@@ -211,9 +223,9 @@ async function handleApi(request, env, url) {
     const category = url.searchParams.get("category");
     let result;
     if (category) {
-      result = await env.DB.prepare("SELECT * FROM products WHERE publicado = 1 AND categoria_slug = ? ORDER BY creado_en DESC").bind(category).all();
+      result = await env.DB.prepare("SELECT * FROM products WHERE publicado = 1 AND categoria_slug = ? ORDER BY orden ASC, creado_en DESC").bind(category).all();
     } else {
-      result = await env.DB.prepare("SELECT * FROM products WHERE publicado = 1 ORDER BY creado_en DESC").all();
+      result = await env.DB.prepare("SELECT * FROM products WHERE publicado = 1 ORDER BY orden ASC, creado_en DESC").all();
     }
     return json({ products: result.results.map(normalizeProduct) });
   }
@@ -251,7 +263,7 @@ async function handleApi(request, env, url) {
     }
 
     if (request.method === "GET" && path === "/api/admin/products") {
-      const result = await env.DB.prepare("SELECT * FROM products ORDER BY creado_en DESC").all();
+      const result = await env.DB.prepare("SELECT * FROM products ORDER BY orden ASC, creado_en DESC").all();
       return json({ products: result.results.map(normalizeProduct) });
     }
 
@@ -266,6 +278,9 @@ async function handleApi(request, env, url) {
       const caracteristicas = String(form.get("caracteristicas") || "").split("\n").map(v => v.trim()).filter(Boolean);
       const stock = Math.max(0, Number.parseInt(form.get("stock") || "0", 10));
       const publicado = form.get("publicado") !== "false";
+      const descuento = Math.max(0, Math.min(100, Number.parseInt(form.get("descuento") || "0", 10)));
+      const maxOrder = await env.DB.prepare("SELECT COALESCE(MAX(orden), -1) AS maxOrden FROM products").first();
+      const orden = Number(maxOrder?.maxOrden ?? -1) + 1;
       const files = form.getAll("imagenes").filter(v => v instanceof File && v.size > 0);
 
       if (!nombre || !categoria || !Number.isFinite(precio) || precio < 0 || files.length < 1 || files.length > 10) {
@@ -281,13 +296,13 @@ async function handleApi(request, env, url) {
 
       const galeria = await putImages(env, id, files);
       const now = new Date().toISOString();
-      await env.DB.prepare(`INSERT INTO products (id,nombre,categoria,categoria_slug,tipo,precio,imagen_principal,galeria_json,descripcion,caracteristicas_json,stock,publicado,creado_en,actualizado_en) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-        .bind(id, nombre, categoria, categoriaSlug, tipo, precio, galeria[0], JSON.stringify(galeria), descripcion, JSON.stringify(caracteristicas), stock, publicado ? 1 : 0, now, now).run();
+      await env.DB.prepare(`INSERT INTO products (id,nombre,categoria,categoria_slug,tipo,precio,imagen_principal,galeria_json,descripcion,caracteristicas_json,stock,publicado,descuento,orden,creado_en,actualizado_en) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .bind(id, nombre, categoria, categoriaSlug, tipo, precio, galeria[0], JSON.stringify(galeria), descripcion, JSON.stringify(caracteristicas), stock, publicado ? 1 : 0, descuento, orden, now, now).run();
 
-      return json({ ok: true, product: { ...INITIAL_PRODUCT, id, nombre, categoria, categoriaSlug, tipo, precio, imagenPrincipal: galeria[0], galeria, descripcion, caracteristicas, stock, publicado } }, 201);
+      return json({ ok: true, product: { ...INITIAL_PRODUCT, id, nombre, categoria, categoriaSlug, tipo, precio, imagenPrincipal: galeria[0], galeria, descripcion, caracteristicas, stock, publicado, descuento, orden } }, 201);
     }
 
-    if (request.method === "PUT" && path.startsWith("/api/admin/products/")) {
+    if (request.method === "PUT" && path.startsWith("/api/admin/products/") && path !== "/api/admin/products/order") {
       const id = decodeURIComponent(path.split("/").pop());
       const existing = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(id).first();
       if (!existing) return json({ error: "Producto no encontrado." }, 404);
@@ -301,12 +316,65 @@ async function handleApi(request, env, url) {
       const caracteristicas = String(form.get("caracteristicas") || "").split("\n").map(v => v.trim()).filter(Boolean);
       const stock = Math.max(0, Number.parseInt(form.get("stock") || "0", 10));
       const publicado = form.get("publicado") !== "false";
+      const descuento = Math.max(0, Math.min(100, Number.parseInt(form.get("descuento") ?? existing.descuento ?? "0", 10)));
       const files = form.getAll("imagenes").filter(v => v instanceof File && v.size > 0);
       let galeria = JSON.parse(existing.galeria_json || "[]");
-      if (files.length) galeria = await putImages(env, id, files);
+      if (files.length) galeria = galeria.concat(await putImages(env, id, files, galeria.length));
+      if (!galeria.length) return json({ error: "El producto debe conservar al menos una imagen." }, 400);
       const now = new Date().toISOString();
-      await env.DB.prepare(`UPDATE products SET nombre=?,categoria=?,categoria_slug=?,tipo=?,precio=?,imagen_principal=?,galeria_json=?,descripcion=?,caracteristicas_json=?,stock=?,publicado=?,actualizado_en=? WHERE id=?`)
-        .bind(nombre, categoria, categoriaSlug, tipo, precio, galeria[0] || existing.imagen_principal, JSON.stringify(galeria), descripcion, JSON.stringify(caracteristicas), stock, publicado ? 1 : 0, now, id).run();
+      await env.DB.prepare(`UPDATE products SET nombre=?,categoria=?,categoria_slug=?,tipo=?,precio=?,imagen_principal=?,galeria_json=?,descripcion=?,caracteristicas_json=?,stock=?,publicado=?,descuento=?,actualizado_en=? WHERE id=?`)
+        .bind(nombre, categoria, categoriaSlug, tipo, precio, galeria[0] || existing.imagen_principal, JSON.stringify(galeria), descripcion, JSON.stringify(caracteristicas), stock, publicado ? 1 : 0, descuento, now, id).run();
+      return json({ ok: true });
+    }
+
+    if (request.method === "DELETE" && path.startsWith("/api/admin/products/") && path.endsWith("/images")) {
+      const id = decodeURIComponent(path.split("/").slice(-2, -1)[0]);
+      const image = url.searchParams.get("image");
+      const existing = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(id).first();
+      if (!existing) return json({ error: "Producto no encontrado." }, 404);
+      let images = JSON.parse(existing.galeria_json || "[]");
+      if (!image || !images.includes(image)) return json({ error: "Imagen no encontrada." }, 404);
+      if (images.length <= 1) return json({ error: "El producto debe conservar al menos una imagen." }, 400);
+      images = images.filter(item => item !== image);
+      if (image.startsWith("/media/")) await env.PRODUCT_IMAGES.delete(image.slice("/media/".length));
+      await env.DB.prepare("UPDATE products SET imagen_principal=?, galeria_json=?, actualizado_en=? WHERE id=?").bind(images[0], JSON.stringify(images), new Date().toISOString(), id).run();
+      return json({ ok: true, galeria: images });
+    }
+
+    if (request.method === "POST" && path.endsWith("/duplicate")) {
+      const id = decodeURIComponent(path.split("/").slice(-2, -1)[0]);
+      const existing = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(id).first();
+      if (!existing) return json({ error: "Producto no encontrado." }, 404);
+      const base = slugify(`${existing.nombre} copia`) || `producto-${Date.now()}`;
+      let newId = base, suffix = 2;
+      while (await env.DB.prepare("SELECT id FROM products WHERE id = ?").bind(newId).first()) newId = `${base}-${suffix++}`;
+      const oldImages = JSON.parse(existing.galeria_json || "[]");
+      const newImages = [];
+      for (let i = 0; i < oldImages.length; i++) {
+        const image = oldImages[i];
+        if (image.startsWith("/media/")) {
+          const key = image.slice("/media/".length);
+          const obj = await env.PRODUCT_IMAGES.get(key);
+          if (obj) {
+            const ext = key.split(".").pop() || "jpg";
+            const newKey = `products/${newId}/${String(i + 1).padStart(2, "0")}-${crypto.randomUUID()}.${ext}`;
+            await env.PRODUCT_IMAGES.put(newKey, obj.body, { httpMetadata: { contentType: obj.httpMetadata?.contentType || "image/jpeg", cacheControl: "public, max-age=31536000, immutable" } });
+            newImages.push(`/media/${newKey}`);
+          }
+        } else newImages.push(image);
+      }
+      const maxOrder = await env.DB.prepare("SELECT COALESCE(MAX(orden), -1) AS maxOrden FROM products").first();
+      const now = new Date().toISOString();
+      await env.DB.prepare(`INSERT INTO products (id,nombre,categoria,categoria_slug,tipo,precio,imagen_principal,galeria_json,descripcion,caracteristicas_json,stock,publicado,descuento,orden,creado_en,actualizado_en) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .bind(newId, `${existing.nombre} copia`, existing.categoria, existing.categoria_slug, existing.tipo, existing.precio, newImages[0] || existing.imagen_principal, JSON.stringify(newImages.length ? newImages : oldImages), existing.descripcion, existing.caracteristicas_json, existing.stock, 0, existing.descuento || 0, Number(maxOrder?.maxOrden ?? -1) + 1, now, now).run();
+      const row = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(newId).first();
+      return json({ ok: true, product: normalizeProduct(row) }, 201);
+    }
+
+    if (request.method === "PUT" && path === "/api/admin/products/order") {
+      const body = await request.json().catch(() => ({}));
+      const ids = Array.isArray(body.ids) ? body.ids : [];
+      for (let i = 0; i < ids.length; i++) await env.DB.prepare("UPDATE products SET orden=? WHERE id=?").bind(i, String(ids[i])).run();
       return json({ ok: true });
     }
 

@@ -3878,3 +3878,7 @@ body.checkout-open {
     border: 1px dashed #ddd4c7;
     border-radius: 12px;
 }
+
+/* Descuentos de catálogo */
+.product-price-wrap{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.product-price-old{text-decoration:line-through;color:#999;font-size:12px;font-weight:500}.product-discount-badge{display:inline-flex;align-items:center;padding:4px 7px;border-radius:5px;background:#111;color:#fff;font-size:10px;font-weight:800;letter-spacing:.5px}.product-price-sale{font-size:16px;font-weight:800;color:var(--black)}
+.product-detail-price-wrap{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.product-detail-price-old{text-decoration:line-through;color:#999;font-size:18px}.product-detail-discount{display:inline-flex;padding:5px 8px;border-radius:6px;background:#111;color:#fff;font-size:11px;font-weight:800}

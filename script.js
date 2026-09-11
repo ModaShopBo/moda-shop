@@ -50,6 +50,8 @@ const PRODUCTOS = {
         descripcion:
             "Billetera Guess Rosa, ideal para complementar tu estilo y llevar tus objetos personales de manera práctica y elegante.",
 
+        descuento: 0,
+
         caracteristicas: [
             "Diseño femenino y moderno",
             "Tamaño práctico para uso diario",
@@ -218,6 +220,11 @@ function obtenerCantidadTotal(carrito) {
 
 }
 
+
+function precioFinalProducto(producto) {
+    const descuento = Math.max(0, Math.min(100, Number(producto?.descuento || 0)));
+    return Math.round(Number(producto?.precio || 0) * (1 - descuento / 100) * 100) / 100;
+}
 
 function formatearPrecio(precio) {
 
@@ -1232,7 +1239,7 @@ function agregarAlCarrito(
 
             nombre: producto.nombre,
 
-            precio: producto.precio,
+            precio: precioFinalProducto(producto),
 
             imagen: producto.imagenPrincipal,
 
@@ -1547,19 +1554,20 @@ async function cargarProducto() {
     }
 
 
-    const precio =
-        document.querySelector(
-            ".product-detail-price"
-        );
-
+    const precio = document.querySelector(".product-detail-price");
 
     if (precio) {
-
-        precio.textContent =
-            formatearPrecio(
-                producto.precio
-            );
-
+        const descuento = Math.max(0, Math.min(100, Number(producto.descuento || 0)));
+        if (descuento > 0) {
+            precio.innerHTML = `
+                <div class="product-detail-price-wrap">
+                    <span class="product-detail-price-old">${formatearPrecio(producto.precio)}</span>
+                    <strong>${formatearPrecio(precioFinalProducto(producto))}</strong>
+                    <span class="product-detail-discount">-${descuento}%</span>
+                </div>`;
+        } else {
+            precio.textContent = formatearPrecio(producto.precio);
+        }
     }
 
 
@@ -1827,7 +1835,11 @@ function renderizarTarjetaProducto(producto) {
                 <span class="product-category">${producto.categoria}</span>
                 <h2>${producto.nombre}</h2>
                 <div class="product-bottom">
-                    <span class="product-price">${formatearPrecio(producto.precio)}</span>
+                    <span class="product-price-wrap">
+                        ${producto.descuento > 0 ? `<span class="product-price-old">${formatearPrecio(producto.precio)}</span>` : ""}
+                        <span class="${producto.descuento > 0 ? "product-price-sale" : "product-price"}">${formatearPrecio(precioFinalProducto(producto))}</span>
+                        ${producto.descuento > 0 ? `<span class="product-discount-badge">-${producto.descuento}%</span>` : ""}
+                    </span>
                     <span class="product-view">Ver producto <i class="fa-solid fa-arrow-right"></i></span>
                 </div>
             </div>

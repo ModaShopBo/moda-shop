@@ -1,96 +1,27 @@
 const $ = (selector) => document.querySelector(selector);
-const loginView = $("#loginView");
-const adminView = $("#adminView");
-const loginForm = $("#loginForm");
-const productForm = $("#productForm");
-const productList = $("#productList");
-const productEditor = $("#productEditor");
-const productImages = $("#productImages");
-const imagePreview = $("#imagePreview");
-const adminMessage = $("#adminMessage");
+const loginView = $("#loginView"), adminView = $("#adminView"), loginForm = $("#loginForm"), productForm = $("#productForm"), productList = $("#productList"), productEditor = $("#productEditor"), productImages = $("#productImages"), imagePreview = $("#imagePreview"), adminMessage = $("#adminMessage");
 let products = [];
-
-function message(el, text, success = false) { el.textContent = text || ""; el.className = `message${success ? " success" : ""}`; }
-function money(value) { return `${Number(value).toFixed(2).replace(".", ",")} Bs.`; }
-
-async function api(url, options = {}) {
-  const response = await fetch(url, { credentials: "same-origin", ...options });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Ocurrió un error.");
-  return data;
-}
-
-async function checkSession() {
-  try { await api("/api/admin/me"); showAdmin(); await loadProducts(); }
-  catch { loginView.classList.remove("hidden"); adminView.classList.add("hidden"); }
-}
-
-function showAdmin() {
-  loginView.classList.add("hidden"); adminView.classList.remove("hidden"); $("#logoutButton").classList.remove("hidden");
-}
-
-loginForm.addEventListener("submit", async (event) => {
-  event.preventDefault(); message($("#loginMessage"), "Entrando...");
-  try { await api("/api/admin/login", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ password:$("#loginPassword").value }) }); showAdmin(); await loadProducts(); }
-  catch(error) { message($("#loginMessage"), error.message); }
-});
-
-$("#logoutButton").addEventListener("click", async () => { await api("/api/admin/logout", {method:"POST"}).catch(()=>{}); location.reload(); });
-$("#newProductButton").addEventListener("click", () => openEditor());
-$("#closeEditor").addEventListener("click", closeEditor);
-$("#cancelEditor").addEventListener("click", closeEditor);
-productImages.addEventListener("change", previewFiles);
-
-function previewFiles() {
-  imagePreview.innerHTML = "";
-  [...productImages.files].slice(0,10).forEach(file => { const img = document.createElement("img"); img.src = URL.createObjectURL(file); imagePreview.appendChild(img); });
-}
-
-async function loadProducts() {
-  try { const data = await api("/api/admin/products"); products = data.products || []; renderProducts(); }
-  catch(error) { message(adminMessage, error.message); }
-}
-
-function renderProducts() {
-  if (!products.length) { productList.innerHTML = `<div class="empty">Todavía no hay productos administrados. Crea el primero.</div>`; return; }
-  productList.innerHTML = products.map(product => `
-    <article class="admin-product">
-      <img src="${escapeHtml(product.imagenPrincipal)}" alt="${escapeHtml(product.nombre)}">
-      <div><h3>${escapeHtml(product.nombre)}</h3><div class="admin-product-meta"><span>${money(product.precio)}</span><span>${escapeHtml(product.categoria)}</span><span>${product.publicado ? "Publicado" : "Oculto"}</span></div></div>
-      <div class="admin-product-actions"><button class="small-button" data-edit="${escapeHtml(product.id)}">Editar</button><button class="small-button delete" data-delete="${escapeHtml(product.id)}">Eliminar</button></div>
-    </article>`).join("");
-  productList.querySelectorAll("[data-edit]").forEach(btn => btn.addEventListener("click", () => openEditor(btn.dataset.edit)));
-  productList.querySelectorAll("[data-delete]").forEach(btn => btn.addEventListener("click", () => deleteProduct(btn.dataset.delete)));
-}
-
-function escapeHtml(value) { return String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[char])); }
-
-function openEditor(id = "") {
-  productForm.reset(); imagePreview.innerHTML = ""; $("#productId").value = ""; $("#productPublished").checked = true;
-  const product = products.find(p => p.id === id);
-  if (product) {
-    $("#editorTitle").textContent = "Editar producto"; $("#productId").value = product.id; $("#productName").value = product.nombre; $("#productPrice").value = product.precio; $("#productType").value = product.tipo; $("#productStock").value = product.stock; $("#productDescription").value = product.descripcion; $("#productFeatures").value = (product.caracteristicas || []).join("\n"); $("#productPublished").checked = product.publicado;
-    const categoryValue = `${product.categoria}|${product.categoriaSlug}`; const option = [...$("#productCategory").options].find(o => o.value === categoryValue); if (option) $("#productCategory").value = categoryValue;
-  } else { $("#editorTitle").textContent = "Nuevo producto"; }
-  productEditor.classList.remove("hidden"); productEditor.scrollIntoView({behavior:"smooth", block:"start"});
-}
-function closeEditor() { productEditor.classList.add("hidden"); }
-
-productForm.addEventListener("submit", async (event) => {
-  event.preventDefault(); const button = $("#saveProductButton"); button.disabled = true; button.textContent = "Guardando..."; message($("#formMessage"), "");
-  const [categoria, categoriaSlug] = $("#productCategory").value.split("|");
-  const form = new FormData(); form.set("nombre", $("#productName").value); form.set("precio", $("#productPrice").value); form.set("categoria", categoria); form.set("categoriaSlug", categoriaSlug); form.set("tipo", $("#productType").value); form.set("stock", $("#productStock").value); form.set("publicado", $("#productPublished").checked ? "true" : "false"); form.set("descripcion", $("#productDescription").value); form.set("caracteristicas", $("#productFeatures").value); [...productImages.files].forEach(file => form.append("imagenes", file));
-  const id = $("#productId").value;
-  try { await api(id ? `/api/admin/products/${encodeURIComponent(id)}` : "/api/admin/products", { method:id ? "PUT" : "POST", body:form }); message($("#formMessage"), "Producto guardado correctamente.", true); await loadProducts(); setTimeout(closeEditor, 500); }
-  catch(error) { message($("#formMessage"), error.message); }
-  finally { button.disabled = false; button.textContent = "Guardar producto"; }
-});
-
-async function deleteProduct(id) {
-  const product = products.find(p => p.id === id); if (!product) return;
-  if (!confirm(`¿Eliminar "${product.nombre}"? Esta acción no se puede deshacer.`)) return;
-  try { await api(`/api/admin/products/${encodeURIComponent(id)}`, {method:"DELETE"}); message(adminMessage, "Producto eliminado.", true); await loadProducts(); }
-  catch(error) { message(adminMessage, error.message); }
-}
-
+function message(el,text,success=false){el.textContent=text||"";el.className=`message${success?" success":""}`}
+function money(v){return `${Number(v).toFixed(2).replace(".",",")} Bs.`}
+function salePrice(p){return Math.round(Number(p.precio)*(1-(Number(p.descuento||0)/100))*100)/100}
+async function api(url,options={}){const r=await fetch(url,{credentials:"same-origin",...options});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Ocurrió un error.");return d}
+async function checkSession(){try{await api("/api/admin/me");showAdmin();await loadProducts()}catch{$("#loginView").classList.remove("hidden");adminView.classList.add("hidden")}}
+function showAdmin(){loginView.classList.add("hidden");adminView.classList.remove("hidden");$("#logoutButton").classList.remove("hidden")}
+loginForm.addEventListener("submit",async e=>{e.preventDefault();message($("#loginMessage"),"Entrando...");try{await api("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("#loginPassword").value})});showAdmin();await loadProducts()}catch(err){message($("#loginMessage"),err.message)}});
+$("#logoutButton").addEventListener("click",async()=>{await api("/api/admin/logout",{method:"POST"}).catch(()=>{});location.reload()});
+$("#newProductButton").addEventListener("click",()=>openEditor());$("#closeEditor").addEventListener("click",closeEditor);$("#cancelEditor").addEventListener("click",closeEditor);productImages.addEventListener("change",previewFiles);$("#productDiscount").addEventListener("input",updateDiscountPreview); 
+function previewFiles(){imagePreview.innerHTML="";[...productImages.files].slice(0,10).forEach(f=>{const img=document.createElement("img");img.src=URL.createObjectURL(f);imagePreview.appendChild(img)})}
+function updateDiscountPreview(){const price=Number($("#productPrice").value)||0,d=Math.max(0,Math.min(100,Number($("#productDiscount").value)||0));$("#discountPreview").textContent=d?`${money(price*(1-d/100))} con ${d}% de descuento`:`Sin descuento`}
+async function loadProducts(){try{const d=await api("/api/admin/products");products=d.products||[];renderProducts()}catch(e){message(adminMessage,e.message)}}
+function renderProducts(){if(!products.length){productList.innerHTML=`<div class="empty">Todavía no hay productos administrados.</div>`;return}productList.innerHTML=products.map((p,i)=>`<article class="admin-product" data-id="${escapeHtml(p.id)}"><img src="${escapeHtml(p.imagenPrincipal)}" alt="${escapeHtml(p.nombre)}"><div><h3>${escapeHtml(p.nombre)}</h3><div class="admin-product-meta"><span>${p.descuento?`<s>${money(p.precio)}</s> ${money(salePrice(p))}`:money(p.precio)}</span><span>${p.descuento?`-${p.descuento}%`:"Sin descuento"}</span><span>${escapeHtml(p.categoria)}</span><span>${p.publicado?"Publicado":"Oculto"}</span></div></div><div class="admin-product-actions"><button class="small-button" data-up="${escapeHtml(p.id)}" ${i===0?"disabled":""}>↑</button><button class="small-button" data-down="${escapeHtml(p.id)}" ${i===products.length-1?"disabled":""}>↓</button><button class="small-button" data-edit="${escapeHtml(p.id)}">Editar</button><button class="small-button" data-duplicate="${escapeHtml(p.id)}">Duplicar</button><button class="small-button delete" data-delete="${escapeHtml(p.id)}">Eliminar</button></div></article>`).join("");
+productList.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openEditor(b.dataset.edit));productList.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>deleteProduct(b.dataset.delete));productList.querySelectorAll("[data-duplicate]").forEach(b=>b.onclick=()=>duplicateProduct(b.dataset.duplicate));productList.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>moveProduct(b.dataset.up,-1));productList.querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>moveProduct(b.dataset.down,1))}
+function escapeHtml(v){return String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]))}
+function openEditor(id=""){productForm.reset();imagePreview.innerHTML="";$("#productId").value="";$("#productPublished").checked=true;$("#existingImagesSection").classList.add("hidden");$("#existingImages").innerHTML="";const p=products.find(x=>x.id===id);if(p){$("#editorTitle").textContent="Editar producto";$("#productId").value=p.id;$("#productName").value=p.nombre;$("#productPrice").value=p.precio;$("#productType").value=p.tipo;$("#productDescription").value=p.descripcion;$("#productFeatures").value=(p.caracteristicas||[]).join("\n");$("#productPublished").checked=p.publicado;$("#productDiscount").value=p.descuento||0;const cv=`${p.categoria}|${p.categoriaSlug}`;if([...$("#productCategory").options].some(o=>o.value===cv))$("#productCategory").value=cv;renderExistingImages(p)}else{$("#editorTitle").textContent="Nuevo producto"}updateDiscountPreview();productEditor.classList.remove("hidden");productEditor.scrollIntoView({behavior:"smooth",block:"start"})}
+function renderExistingImages(p){const box=$("#existingImages");const imgs=p.galeria||[];$("#existingImagesSection").classList.toggle("hidden",!imgs.length);box.innerHTML=imgs.map((src,i)=>`<div class="existing-image"><img src="${escapeHtml(src)}" alt="Foto ${i+1}"><button type="button" class="remove-image" data-image="${encodeURIComponent(src)}" title="Eliminar foto">×</button>${i===0?'<span class="main-badge">Principal</span>':''}</div>`).join("");box.querySelectorAll(".remove-image").forEach(b=>b.onclick=()=>removeImage(p.id,decodeURIComponent(b.dataset.image)))}
+async function removeImage(id,image){if(!confirm("¿Eliminar esta foto?"))return;try{await api(`/api/admin/products/${encodeURIComponent(id)}/images?image=${encodeURIComponent(image)}`,{method:"DELETE"});await loadProducts();const p=products.find(x=>x.id===id);if(p)renderExistingImages(p);message($("#formMessage"),"Foto eliminada correctamente.",true)}catch(e){message($("#formMessage"),e.message)}}
+function closeEditor(){productEditor.classList.add("hidden")}
+productForm.addEventListener("submit",async e=>{e.preventDefault();const b=$("#saveProductButton");b.disabled=true;b.textContent="Guardando...";message($("#formMessage"),"");const [categoria,categoriaSlug]=$("#productCategory").value.split("|");const f=new FormData();f.set("nombre",$("#productName").value);f.set("precio",$("#productPrice").value);f.set("categoria",categoria);f.set("categoriaSlug",categoriaSlug);f.set("tipo",$("#productType").value);f.set("publicado",$("#productPublished").checked?"true":"false");f.set("descuento",$("#productDiscount").value||"0");f.set("descripcion",$("#productDescription").value);f.set("caracteristicas",$("#productFeatures").value);[...productImages.files].forEach(file=>f.append("imagenes",file));const id=$("#productId").value;try{await api(id?`/api/admin/products/${encodeURIComponent(id)}`:"/api/admin/products",{method:id?"PUT":"POST",body:f});message($("#formMessage"),"Producto guardado correctamente.",true);await loadProducts();setTimeout(closeEditor,500)}catch(err){message($("#formMessage"),err.message)}finally{b.disabled=false;b.textContent="Guardar producto"}});
+async function deleteProduct(id){const p=products.find(x=>x.id===id);if(!p||!confirm(`¿Eliminar "${p.nombre}"? Esta acción no se puede deshacer.`))return;try{await api(`/api/admin/products/${encodeURIComponent(id)}`,{method:"DELETE"});message(adminMessage,"Producto eliminado.",true);await loadProducts()}catch(e){message(adminMessage,e.message)}}
+async function duplicateProduct(id){const p=products.find(x=>x.id===id);if(!p)return;try{const d=await api(`/api/admin/products/${encodeURIComponent(id)}/duplicate`,{method:"POST"});message(adminMessage,`Producto duplicado: ${d.product.nombre}. Está oculto hasta que lo publiques.`,true);await loadProducts();openEditor(d.product.id)}catch(e){message(adminMessage,e.message)}}
+async function moveProduct(id,delta){const i=products.findIndex(p=>p.id===id),j=i+delta;if(i<0||j<0||j>=products.length)return;[products[i],products[j]]=[products[j],products[i]];try{await api("/api/admin/products/order",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids:products.map(p=>p.id)})});renderProducts()}catch(e){message(adminMessage,e.message);await loadProducts()}}
 checkSession();

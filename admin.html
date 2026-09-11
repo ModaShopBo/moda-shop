@@ -1,68 +1,37 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin | ModaShop 🇧🇴</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | ModaShop 🇧🇴</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
 </head>
 <body>
-  <div class="admin-shell">
-    <header class="admin-topbar">
-      <a href="index.html" class="admin-logo"><strong>Moda</strong><span>Shop</span> 🇧🇴</a>
-      <div class="admin-top-actions">
-        <a href="index.html" target="_blank">Ver tienda ↗</a>
-        <button id="logoutButton" class="ghost-button hidden">Cerrar sesión</button>
-      </div>
-    </header>
-
-    <main class="admin-main">
-      <section id="loginView" class="login-card">
-        <span class="eyebrow">MODASHOP ADMIN</span>
-        <h1>Panel de administración</h1>
-        <p>Gestiona tu catálogo sin tocar el código de la tienda.</p>
-        <form id="loginForm">
-          <label>Contraseña de administrador<input id="loginPassword" type="password" autocomplete="current-password" required></label>
-          <button class="primary-button" type="submit">Entrar al administrador</button>
-          <p id="loginMessage" class="message"></p>
-        </form>
-      </section>
-
-      <section id="adminView" class="hidden">
-        <div class="page-heading">
-          <div><span class="eyebrow">CATÁLOGO</span><h1>Productos</h1><p>Agrega y administra los productos que aparecerán en ModaShop.</p></div>
-          <button id="newProductButton" class="primary-button">＋ Nuevo producto</button>
-        </div>
-
-        <div id="adminMessage" class="message"></div>
-        <div id="productList" class="admin-product-list"></div>
-
-        <section id="productEditor" class="editor-card hidden">
-          <div class="editor-heading"><div><span class="eyebrow">EDITOR</span><h2 id="editorTitle">Nuevo producto</h2></div><button id="closeEditor" class="icon-button">×</button></div>
-          <form id="productForm" enctype="multipart/form-data">
-            <input id="productId" type="hidden">
-            <div class="form-grid">
-              <label>Nombre del producto<input id="productName" required></label>
-              <label>Precio (Bs.)<input id="productPrice" type="number" min="0" step="0.01" required></label>
-              <label>Categoría<select id="productCategory" required><option value="Billeteras para Mujer|billeteras">Billeteras para Mujer</option><option value="Carteras para Mujer|carteras">Carteras para Mujer</option><option value="Bisutería|bisuteria">Bisutería</option><option value="Relojes para Mujer|relojes">Relojes para Mujer</option><option value="Accesorios para Varón|varon">Accesorios para Varón</option><option value="Accesorios para Niños|ninos">Accesorios para Niños</option></select></label>
-              <label>Tipo<select id="productType"><option>Producto</option><option>Réplica</option></select></label>
-              <label>Stock<input id="productStock" type="number" min="0" step="1" value="0"></label>
-              <label class="publish-field"><span>Estado</span><span class="switch-row"><input id="productPublished" type="checkbox" checked><span>Publicado</span></span></label>
-            </div>
-            <label>Descripción<textarea id="productDescription" rows="4" required></textarea></label>
-            <label>Características <span class="helper">una por línea</span><textarea id="productFeatures" rows="5"></textarea></label>
-            <label>Fotos <span class="helper">1 a 10 imágenes · máximo 8 MB cada una</span><input id="productImages" type="file" accept="image/*" multiple></label>
-            <div id="imagePreview" class="image-preview"></div>
-            <div class="editor-actions"><button type="button" id="cancelEditor" class="secondary-button">Cancelar</button><button type="submit" class="primary-button" id="saveProductButton">Guardar producto</button></div>
-            <p id="formMessage" class="message"></p>
-          </form>
-        </section>
-      </section>
-    </main>
-  </div>
-  <script src="admin.js"></script>
-</body>
-</html>
+<div class="admin-shell">
+<header class="admin-topbar"><a href="index.html" class="admin-logo"><strong>Moda</strong><span>Shop</span> 🇧🇴</a><div class="admin-top-actions"><a href="index.html" target="_blank">Ver tienda ↗</a><button id="logoutButton" class="ghost-button hidden">Cerrar sesión</button></div></header>
+<main class="admin-main">
+<section id="loginView" class="login-card"><span class="eyebrow">MODASHOP ADMIN</span><h1>Panel de administración</h1><p>Gestiona tu catálogo sin tocar el código de la tienda.</p><form id="loginForm"><label>Contraseña de administrador<input id="loginPassword" type="password" autocomplete="current-password" required></label><button class="primary-button" type="submit">Entrar al administrador</button><p id="loginMessage" class="message"></p></form></section>
+<section id="adminView" class="hidden">
+<div class="page-heading"><div><span class="eyebrow">CATÁLOGO</span><h1>Productos</h1><p>Edita, duplica, ordena y publica tus productos.</p></div><button id="newProductButton" class="primary-button">＋ Nuevo producto</button></div>
+<div id="adminMessage" class="message"></div><div id="productList" class="admin-product-list"></div>
+<section id="productEditor" class="editor-card hidden">
+<div class="editor-heading"><div><span class="eyebrow">EDITOR</span><h2 id="editorTitle">Nuevo producto</h2></div><button id="closeEditor" class="icon-button">×</button></div>
+<form id="productForm" enctype="multipart/form-data"><input id="productId" type="hidden">
+<div class="form-grid">
+<label>Nombre del producto<input id="productName" required></label>
+<label>Precio normal (Bs.)<input id="productPrice" type="number" min="0" step="0.01" required></label>
+<label>Categoría<select id="productCategory" required><option value="Billeteras para Mujer|billeteras">Billeteras para Mujer</option><option value="Carteras para Mujer|carteras">Carteras para Mujer</option><option value="Bisutería|bisuteria">Bisutería</option><option value="Relojes para Mujer|relojes">Relojes para Mujer</option><option value="Accesorios para Varón|varon">Accesorios para Varón</option><option value="Accesorios para Niños|ninos">Accesorios para Niños</option></select></label>
+<label>Tipo<select id="productType"><option>Producto</option><option>Réplica</option></select></label>
+<label>Descuento (%)<input id="productDiscount" type="number" min="0" max="100" step="1" value="0"><span id="discountPreview" class="helper discount-preview">Sin descuento</span></label>
+<label class="publish-field"><span>Estado</span><span class="switch-row"><input id="productPublished" type="checkbox" checked><span>Publicado</span></span></label>
+</div>
+<label>Descripción<textarea id="productDescription" rows="4" required></textarea></label>
+<label>Características <span class="helper">una por línea</span><textarea id="productFeatures" rows="5"></textarea></label>
+<div id="existingImagesSection" class="existing-images-section hidden"><div class="section-label">Fotos actuales <span class="helper">Puedes eliminar una por una.</span></div><div id="existingImages" class="existing-images"></div></div>
+<label>Agregar fotos <span class="helper">1 a 10 imágenes nuevas · máximo 8 MB cada una</span><input id="productImages" type="file" accept="image/*" multiple></label>
+<div id="imagePreview" class="image-preview"></div>
+<div class="editor-actions"><button type="button" id="cancelEditor" class="secondary-button">Cancelar</button><button type="submit" class="primary-button" id="saveProductButton">Guardar producto</button></div>
+<p id="formMessage" class="message"></p>
+</form></section></section></main></div><script src="admin.js"></script>
+</body></html>
