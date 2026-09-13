@@ -640,10 +640,17 @@ function validarCheckout() {
         address.classList.add("invalid");
         valido = false;
     } else { address.classList.remove("invalid"); }
+    const mapsLink = document.getElementById("checkoutMapsLink");
+    const locationStatus = document.getElementById("checkoutLocationStatus");
+    const locationBox = document.getElementById("checkoutLocationBox");
+
     if (!mapsLink?.value.trim()) {
         if (locationStatus) locationStatus.textContent = "Debes compartir tu ubicación exacta para continuar.";
-        locationBox?.classList.add("invalid-location"); valido = false;
-    } else { locationBox?.classList.remove("invalid-location"); }
+        locationBox?.classList.add("invalid-location");
+        valido = false;
+    } else {
+        locationBox?.classList.remove("invalid-location");
+    }
     return valido;
 }
 
