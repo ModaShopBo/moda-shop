@@ -302,8 +302,12 @@ async function handleApi(request, env, url) {
       return json({ ok: true, product: { ...INITIAL_PRODUCT, id, nombre, categoria, categoriaSlug, tipo, precio, imagenPrincipal: galeria[0], galeria, descripcion, caracteristicas, stock, publicado, descuento, orden } }, 201);
     }
 
-    if (request.method === "PUT" && path.startsWith("/api/admin/products/") && path !== "/api/admin/products/order") {
-      const id = decodeURIComponent(path.split("/").pop());
+    const productPathMatch = path.match(/^\/api\/admin\/products\/([^/]+)$/);
+    const imagePathMatch = path.match(/^\/api\/admin\/products\/([^/]+)\/images$/);
+    const duplicatePathMatch = path.match(/^\/api\/admin\/products\/([^/]+)\/duplicate$/);
+
+    if (request.method === "PUT" && productPathMatch) {
+      const id = decodeURIComponent(productPathMatch[1]);
       const existing = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(id).first();
       if (!existing) return json({ error: "Producto no encontrado." }, 404);
       const form = await request.formData();
@@ -320,29 +324,37 @@ async function handleApi(request, env, url) {
       const files = form.getAll("imagenes").filter(v => v instanceof File && v.size > 0);
       let galeria = JSON.parse(existing.galeria_json || "[]");
       if (files.length) galeria = galeria.concat(await putImages(env, id, files, galeria.length));
-      if (!galeria.length) return json({ error: "El producto debe conservar al menos una imagen." }, 400);
+
+      // Un producto editado puede quedar temporalmente sin imágenes.
+      // La creación de productos nuevos sigue exigiendo al menos una imagen.
+      const imagenPrincipal = galeria[0] || "";
       const now = new Date().toISOString();
       await env.DB.prepare(`UPDATE products SET nombre=?,categoria=?,categoria_slug=?,tipo=?,precio=?,imagen_principal=?,galeria_json=?,descripcion=?,caracteristicas_json=?,stock=?,publicado=?,descuento=?,actualizado_en=? WHERE id=?`)
-        .bind(nombre, categoria, categoriaSlug, tipo, precio, galeria[0] || existing.imagen_principal, JSON.stringify(galeria), descripcion, JSON.stringify(caracteristicas), stock, publicado ? 1 : 0, descuento, now, id).run();
-      return json({ ok: true });
+        .bind(nombre, categoria, categoriaSlug, tipo, precio, imagenPrincipal, JSON.stringify(galeria), descripcion, JSON.stringify(caracteristicas), stock, publicado ? 1 : 0, descuento, now, id).run();
+      return json({ ok: true, galeria });
     }
 
-    if (request.method === "DELETE" && path.startsWith("/api/admin/products/") && path.endsWith("/images")) {
-      const id = decodeURIComponent(path.split("/").slice(-2, -1)[0]);
+    if (request.method === "DELETE" && imagePathMatch) {
+      const id = decodeURIComponent(imagePathMatch[1]);
       const image = url.searchParams.get("image");
       const existing = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(id).first();
       if (!existing) return json({ error: "Producto no encontrado." }, 404);
       let images = JSON.parse(existing.galeria_json || "[]");
       if (!image || !images.includes(image)) return json({ error: "Imagen no encontrada." }, 404);
-      if (images.length <= 1) return json({ error: "El producto debe conservar al menos una imagen." }, 400);
+
       images = images.filter(item => item !== image);
-      if (image.startsWith("/media/")) await env.PRODUCT_IMAGES.delete(image.slice("/media/".length));
-      await env.DB.prepare("UPDATE products SET imagen_principal=?, galeria_json=?, actualizado_en=? WHERE id=?").bind(images[0], JSON.stringify(images), new Date().toISOString(), id).run();
-      return json({ ok: true, galeria: images });
+      if (image.startsWith("/media/")) {
+        await env.PRODUCT_IMAGES.delete(image.slice("/media/".length));
+      }
+
+      const imagenPrincipal = images[0] || "";
+      await env.DB.prepare("UPDATE products SET imagen_principal=?, galeria_json=?, actualizado_en=? WHERE id=?")
+        .bind(imagenPrincipal, JSON.stringify(images), new Date().toISOString(), id).run();
+      return json({ ok: true, galeria: images, imagenPrincipal });
     }
 
-    if (request.method === "POST" && path.endsWith("/duplicate")) {
-      const id = decodeURIComponent(path.split("/").slice(-2, -1)[0]);
+    if (request.method === "POST" && duplicatePathMatch) {
+      const id = decodeURIComponent(duplicatePathMatch[1]);
       const existing = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(id).first();
       if (!existing) return json({ error: "Producto no encontrado." }, 404);
       const base = slugify(`${existing.nombre} copia`) || `producto-${Date.now()}`;
@@ -361,12 +373,14 @@ async function handleApi(request, env, url) {
             await env.PRODUCT_IMAGES.put(newKey, obj.body, { httpMetadata: { contentType: obj.httpMetadata?.contentType || "image/jpeg", cacheControl: "public, max-age=31536000, immutable" } });
             newImages.push(`/media/${newKey}`);
           }
-        } else newImages.push(image);
+        } else if (image) {
+          newImages.push(image);
+        }
       }
       const maxOrder = await env.DB.prepare("SELECT COALESCE(MAX(orden), -1) AS maxOrden FROM products").first();
       const now = new Date().toISOString();
       await env.DB.prepare(`INSERT INTO products (id,nombre,categoria,categoria_slug,tipo,precio,imagen_principal,galeria_json,descripcion,caracteristicas_json,stock,publicado,descuento,orden,creado_en,actualizado_en) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-        .bind(newId, `${existing.nombre} copia`, existing.categoria, existing.categoria_slug, existing.tipo, existing.precio, newImages[0] || existing.imagen_principal, JSON.stringify(newImages.length ? newImages : oldImages), existing.descripcion, existing.caracteristicas_json, existing.stock, 0, existing.descuento || 0, Number(maxOrder?.maxOrden ?? -1) + 1, now, now).run();
+        .bind(newId, `${existing.nombre} copia`, existing.categoria, existing.categoria_slug, existing.tipo, existing.precio, newImages[0] || "", JSON.stringify(newImages), existing.descripcion, existing.caracteristicas_json, existing.stock, 0, existing.descuento || 0, Number(maxOrder?.maxOrden ?? -1) + 1, now, now).run();
       const row = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(newId).first();
       return json({ ok: true, product: normalizeProduct(row) }, 201);
     }
@@ -378,16 +392,18 @@ async function handleApi(request, env, url) {
       return json({ ok: true });
     }
 
-    if (request.method === "DELETE" && path.startsWith("/api/admin/products/")) {
-      const id = decodeURIComponent(path.split("/").pop());
+    if (request.method === "DELETE" && productPathMatch) {
+      const id = decodeURIComponent(productPathMatch[1]);
       const existing = await env.DB.prepare("SELECT galeria_json FROM products WHERE id = ?").bind(id).first();
       if (!existing) return json({ error: "Producto no encontrado." }, 404);
       const images = JSON.parse(existing.galeria_json || "[]");
-      for (const image of images) {
-        const key = image.replace(/^\/media\//, "");
-        if (key) await env.PRODUCT_IMAGES.delete(key);
+      const r2Keys = images.filter(image => typeof image === "string" && image.startsWith("/media/"))
+        .map(image => image.slice("/media/".length));
+      if (r2Keys.length) await env.PRODUCT_IMAGES.delete(r2Keys);
+      const result = await env.DB.prepare("DELETE FROM products WHERE id = ?").bind(id).run();
+      if (!result.success || Number(result.meta?.changes || 0) !== 1) {
+        return json({ error: "No se pudo eliminar el producto de la base de datos." }, 500);
       }
-      await env.DB.prepare("DELETE FROM products WHERE id = ?").bind(id).run();
       return json({ ok: true });
     }
   }
