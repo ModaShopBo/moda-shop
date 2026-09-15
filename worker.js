@@ -42,6 +42,14 @@ function htmlHeaders(contentType = "text/html; charset=utf-8") {
   return { "Content-Type": contentType };
 }
 
+function calcularPrecioFinal(precio, descuento) {
+  const precioNumero = Number(precio || 0);
+  const descuentoNumero = Math.max(0, Math.min(100, Number(descuento || 0)));
+  return descuentoNumero > 0
+    ? Math.round(precioNumero * (1 - descuentoNumero / 100))
+    : precioNumero;
+}
+
 function normalizeProduct(row) {
   if (!row) return null;
   return {
@@ -59,7 +67,7 @@ function normalizeProduct(row) {
     publicado: Boolean(row.publicado),
     descuento: Math.max(0, Math.min(100, Number(row.descuento || 0))),
     orden: Number(row.orden || 0),
-    precioFinal: Math.round((Number(row.precio) * (1 - Math.max(0, Math.min(100, Number(row.descuento || 0))) / 100)) * 100) / 100,
+    precioFinal: calcularPrecioFinal(row.precio, row.descuento),
     creadoEn: row.creado_en,
     actualizadoEn: row.actualizado_en
   };
@@ -90,29 +98,9 @@ async function ensureSchema(env) {
   try { await env.DB.prepare("ALTER TABLE products ADD COLUMN descuento INTEGER NOT NULL DEFAULT 0").run(); } catch (_) {}
   try { await env.DB.prepare("ALTER TABLE products ADD COLUMN orden INTEGER NOT NULL DEFAULT 0").run(); } catch (_) {}
 
-  const existing = await env.DB.prepare("SELECT id FROM products WHERE id = ?").bind(INITIAL_PRODUCT.id).first();
-  if (!existing) {
-    const now = new Date().toISOString();
-    await env.DB.prepare(`INSERT INTO products (id,nombre,categoria,categoria_slug,tipo,precio,imagen_principal,galeria_json,descripcion,caracteristicas_json,stock,publicado,descuento,orden,creado_en,actualizado_en) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-      .bind(
-        INITIAL_PRODUCT.id,
-        INITIAL_PRODUCT.nombre,
-        INITIAL_PRODUCT.categoria,
-        INITIAL_PRODUCT.categoriaSlug,
-        INITIAL_PRODUCT.tipo,
-        INITIAL_PRODUCT.precio,
-        INITIAL_PRODUCT.imagenPrincipal,
-        JSON.stringify(INITIAL_PRODUCT.galeria),
-        INITIAL_PRODUCT.descripcion,
-        JSON.stringify(INITIAL_PRODUCT.caracteristicas),
-        INITIAL_PRODUCT.stock,
-        1,
-        INITIAL_PRODUCT.descuento,
-        1,
-        now,
-        now
-      ).run();
-  }
+  // No reinsertamos automáticamente un producto de ejemplo.
+  // Si el administrador elimina un producto, debe permanecer eliminado.
+
 }
 
 function base64url(bytes) {
