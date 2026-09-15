@@ -2111,6 +2111,33 @@ button {
 
 
 /* =========================================
+   OFERTA LOCAL — BILLETERAS LA PAZ
+========================================= */
+.catalog-local-offer {
+    margin-top: 12px !important;
+    color: var(--black) !important;
+    font-size: 13px !important;
+}
+
+.catalog-local-note {
+    margin-top: 7px !important;
+    color: var(--gray) !important;
+    font-size: 11px !important;
+}
+
+.product-local-shipping {
+    display: inline-flex;
+    align-items: center;
+    width: 100%;
+    margin-top: 7px;
+    color: var(--gold-dark);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .2px;
+}
+
+
+/* =========================================
    SI SOLO HAY UN PRODUCTO
 ========================================= */
 
@@ -3972,6 +3999,7 @@ body.checkout-open {
     .product-category { font-size: 7px; letter-spacing: 1px; margin-bottom: 5px; }
     .product-info h2 { font-size: 16px; margin-bottom: 10px; }
     .product-bottom { display: block; }
+    .product-local-shipping { margin-top: 6px; font-size: 8px; }
     .product-price-wrap { gap: 5px; }
     .product-price, .product-price-sale { font-size: 14px; }
     .product-price-old { font-size: 9px; }

@@ -1675,8 +1675,9 @@ function renderizarTarjetaProducto(producto) {
                         <span class="${producto.descuento > 0 ? "product-price-sale" : "product-price"}">${formatearPrecio(precioFinalProducto(producto))}</span>
                         ${producto.descuento > 0 ? `<span class="product-discount-badge">-${producto.descuento}%</span>` : ""}
                     </span>
-                    <span class="product-view">Ver producto <i class="fa-solid fa-arrow-right"></i></span>
+                    <span class="product-view">${document.body.classList.contains("billeteras-campaign") ? "Ver fotos reales" : "Ver producto"} <i class="fa-solid fa-arrow-right"></i></span>
                 </div>
+                ${document.body.classList.contains("billeteras-campaign") ? `<span class="product-local-shipping">🚚 Envío GRATIS en La Paz</span>` : ""}
             </div>
         </a>`;
 }
