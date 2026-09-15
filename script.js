@@ -1432,6 +1432,32 @@ async function cargarProducto() {
     }
 
 
+    // Oferta específica para la campaña de billeteras en La Paz.
+    // No modifica ningún dato del producto; solo cambia la información
+    // visual de envío/pago en la ficha cuando la categoría es "billeteras".
+    const esBilletera =
+        String(producto.categoriaSlug || "").trim().toLowerCase() === "billeteras" ||
+        String(producto.categoria || "").trim().toLowerCase().includes("billetera");
+
+    if (esBilletera) {
+        const bloquesEnvio = document.querySelectorAll(".product-shipping > div");
+
+        if (bloquesEnvio[0]) {
+            const strong = bloquesEnvio[0].querySelector("strong");
+            const small = bloquesEnvio[0].querySelector("small");
+            if (strong) strong.textContent = "Envío GRATIS en La Paz";
+            if (small) small.textContent = "Recibe tu pedido sin costo de envío. Para otros departamentos, consulta condiciones.";
+        }
+
+        if (bloquesEnvio[1]) {
+            const strong = bloquesEnvio[1].querySelector("strong");
+            const small = bloquesEnvio[1].querySelector("small");
+            if (strong) strong.textContent = "Pago contra entrega";
+            if (small) small.textContent = "Paga cuando recibas tu pedido en la ciudad de La Paz.";
+        }
+    }
+
+
     const precio = document.querySelector(".product-detail-price");
 
     if (precio) {
