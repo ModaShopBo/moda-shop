@@ -1,4 +1,17 @@
 /* =========================================
+   META PIXEL - MODASHOP
+========================================= */
+
+function trackMetaEvent(eventName, params = {}) {
+    if (typeof window.fbq !== "function") return;
+    try {
+        window.fbq("track", eventName, params);
+    } catch (error) {
+        // La medición no debe afectar el funcionamiento de la tienda.
+    }
+}
+
+/* =========================================
    MODASHOP 🇧🇴
    SCRIPT PRINCIPAL
 ========================================= */
@@ -483,6 +496,18 @@ function abrirCheckout() {
     modal?.classList.add("active");
     document.body.classList.add("checkout-open");
 
+    trackMetaEvent("InitiateCheckout", {
+        content_ids: carrito.map(producto => String(producto.id)),
+        contents: carrito.map(producto => ({
+            id: String(producto.id),
+            quantity: Number(producto.cantidad || 1)
+        })),
+        content_type: "product",
+        num_items: carrito.reduce((total, producto) => total + Number(producto.cantidad || 0), 0),
+        value: Number(obtenerTotalCarrito() || 0),
+        currency: "BOB"
+    });
+
     setTimeout(() => {
         document.getElementById("checkoutName")?.focus();
     }, 150);
@@ -687,7 +712,21 @@ function mostrarConfirmacionPedido() {
         document.body.appendChild(overlay); document.body.appendChild(modal);
         overlay.addEventListener("click", cerrarConfirmacionPedido); document.getElementById("orderSuccessClose")?.addEventListener("click", cerrarConfirmacionPedido);
         document.getElementById("orderSuccessWhatsapp")?.addEventListener("click", () => {
-            if (!ultimoPedidoWhatsAppUrl) return; window.open(ultimoPedidoWhatsAppUrl, "_blank", "noopener,noreferrer"); ultimoPedidoWhatsAppUrl = ""; localStorage.removeItem(CART_STORAGE_KEY); actualizarContadorCarrito(); renderizarCarrito(); cerrarConfirmacionPedido();
+            if (!ultimoPedidoWhatsAppUrl) return;
+            const carritoConfirmado = obtenerCarrito();
+            const totalConfirmado = carritoConfirmado.reduce((total, producto) => total + (Number(producto.precio || 0) * Number(producto.cantidad || 0)), 0);
+            trackMetaEvent("Purchase", {
+                content_ids: carritoConfirmado.map(producto => String(producto.id)),
+                contents: carritoConfirmado.map(producto => ({
+                    id: String(producto.id),
+                    quantity: Number(producto.cantidad || 1)
+                })),
+                content_type: "product",
+                num_items: carritoConfirmado.reduce((total, producto) => total + Number(producto.cantidad || 0), 0),
+                value: Number(totalConfirmado || 0),
+                currency: "BOB"
+            });
+            window.open(ultimoPedidoWhatsAppUrl, "_blank", "noopener,noreferrer"); ultimoPedidoWhatsAppUrl = ""; localStorage.removeItem(CART_STORAGE_KEY); actualizarContadorCarrito(); renderizarCarrito(); cerrarConfirmacionPedido();
         });
     }
     overlay.classList.add("active"); modal.classList.add("active"); document.body.classList.add("order-success-open");
@@ -1540,6 +1579,14 @@ async function cargarProducto() {
     configurarGaleria(producto);
 
     configurarWhatsAppProducto(producto);
+
+    trackMetaEvent("ViewContent", {
+        content_ids: [String(producto.id)],
+        content_name: String(producto.nombre || ""),
+        content_type: "product",
+        value: Number(precioFinalProducto(producto) || 0),
+        currency: "BOB"
+    });
 
     configurarCantidad(producto);
 
