@@ -222,16 +222,16 @@ function obtenerCantidadTotal(carrito) {
 
 
 function precioFinalProducto(producto) {
-    const precio = Number(producto?.precio || 0);
     const descuento = Math.max(0, Math.min(100, Number(producto?.descuento || 0)));
-    return descuento > 0
-        ? Math.round(precio * (1 - descuento / 100))
-        : precio;
+    return Math.round(Number(producto?.precio || 0) * (1 - descuento / 100) * 100) / 100;
 }
 
 function formatearPrecio(precio) {
-    const numero = Number(precio || 0);
-    return `${Number.isInteger(numero) ? numero : numero.toFixed(2).replace(".", ",")} Bs.`;
+
+    return `${precio
+        .toFixed(2)
+        .replace(".", ",")} Bs.`;
+
 }
 
 
@@ -1676,13 +1676,75 @@ function renderizarTarjetaProducto(producto) {
         </a>`;
 }
 
+const PRODUCTOS_POR_PAGINA = 10;
+let productosCatalogoActual = [];
+let paginaCatalogoActual = 1;
+
+function renderizarPaginacionCatalogo(totalProductos) {
+    const pagination = document.getElementById("catalogPagination");
+    if (!pagination) return;
+
+    const totalPaginas = Math.ceil(totalProductos / PRODUCTOS_POR_PAGINA);
+    pagination.innerHTML = "";
+
+    if (totalPaginas <= 1) return;
+
+    const crearBoton = (texto, pagina, disabled = false, activo = false) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `catalog-pagination-button${activo ? " active" : ""}`;
+        button.textContent = texto;
+        button.disabled = disabled;
+        button.setAttribute("aria-label", `Página ${pagina}`);
+        if (activo) button.setAttribute("aria-current", "page");
+        button.addEventListener("click", () => {
+            paginaCatalogoActual = pagina;
+            renderizarPaginaCatalogo();
+            const grid = document.getElementById("catalogProductGrid");
+            if (grid) grid.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        return button;
+    };
+
+    pagination.appendChild(
+        crearBoton("‹", paginaCatalogoActual - 1, paginaCatalogoActual === 1)
+    );
+
+    for (let pagina = 1; pagina <= totalPaginas; pagina++) {
+        pagination.appendChild(
+            crearBoton(String(pagina), pagina, false, pagina === paginaCatalogoActual)
+        );
+    }
+
+    pagination.appendChild(
+        crearBoton("›", paginaCatalogoActual + 1, paginaCatalogoActual === totalPaginas)
+    );
+}
+
+function renderizarPaginaCatalogo() {
+    const grid = document.getElementById("catalogProductGrid");
+    if (!grid) return;
+
+    const totalPaginas = Math.max(1, Math.ceil(productosCatalogoActual.length / PRODUCTOS_POR_PAGINA));
+    paginaCatalogoActual = Math.min(Math.max(1, paginaCatalogoActual), totalPaginas);
+
+    const inicio = (paginaCatalogoActual - 1) * PRODUCTOS_POR_PAGINA;
+    const productosPagina = productosCatalogoActual.slice(inicio, inicio + PRODUCTOS_POR_PAGINA);
+
+    grid.innerHTML = productosPagina.length
+        ? productosPagina.map(renderizarTarjetaProducto).join("")
+        : `<div class="catalog-loading">Todavía no hay productos publicados en esta categoría.</div>`;
+
+    renderizarPaginacionCatalogo(productosCatalogoActual.length);
+}
+
 async function cargarCatalogoDinamico() {
     const grid = document.getElementById("catalogProductGrid");
     if (!grid) return;
-    const productos = await obtenerProductosCatalogo("billeteras");
-    grid.innerHTML = productos.length
-        ? productos.map(renderizarTarjetaProducto).join("")
-        : `<div class="catalog-loading">Todavía no hay productos publicados en esta categoría.</div>`;
+
+    productosCatalogoActual = await obtenerProductosCatalogo("billeteras");
+    paginaCatalogoActual = 1;
+    renderizarPaginaCatalogo();
 }
 
 /* =========================================
