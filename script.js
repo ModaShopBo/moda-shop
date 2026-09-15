@@ -222,16 +222,21 @@ function obtenerCantidadTotal(carrito) {
 
 
 function precioFinalProducto(producto) {
+    const precio = Number(producto?.precio || 0);
     const descuento = Math.max(0, Math.min(100, Number(producto?.descuento || 0)));
-    return Math.round(Number(producto?.precio || 0) * (1 - descuento / 100) * 100) / 100;
+
+    // Los precios con descuento se redondean a bolivianos enteros.
+    // Ejemplo: 249 Bs. con 20% = 199 Bs. y ahorro de 50 Bs.
+    return descuento > 0
+        ? Math.round(precio * (1 - descuento / 100))
+        : precio;
 }
 
 function formatearPrecio(precio) {
-
-    return `${precio
-        .toFixed(2)
-        .replace(".", ",")} Bs.`;
-
+    const numero = Number(precio || 0);
+    return `${Number.isInteger(numero)
+        ? numero
+        : numero.toFixed(2).replace(".", ",")} Bs.`;
 }
 
 
